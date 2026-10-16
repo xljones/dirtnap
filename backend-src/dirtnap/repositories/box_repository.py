@@ -68,7 +68,9 @@ class BoxRepository(BaseRepository):
         box["tubes"] = self._rows(
             self.db.execute(
                 """
-                SELECT t.*, c.latitude AS core_latitude, c.longitude AS core_longitude
+                SELECT t.*, c.barcode AS core_barcode, c.name AS core_name,
+                       c.site_name AS core_site_name, c.sample_type AS core_sample_type,
+                       c.latitude AS core_latitude, c.longitude AS core_longitude
                 FROM tubes t
                 LEFT JOIN cores c ON c.id = t.core_id
                 WHERE t.box_id=? ORDER BY t.depth_cm ASC, t.created_at ASC
