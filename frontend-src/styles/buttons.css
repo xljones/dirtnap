@@ -62,3 +62,13 @@
   user-select: none;
 }
 .export-dropdown-checkbox:hover { background: var(--surface2); }
+.export-dropdown-choice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--text);
+}
+.export-dropdown-choice-group { display: flex; gap: 4px; }

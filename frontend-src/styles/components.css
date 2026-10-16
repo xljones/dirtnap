@@ -69,3 +69,16 @@ a.core-depth-marker:hover, a.core-depth-marker--active { transform: translate(-5
 
 /* ── Alerts ────────────────────────────────────────────────────────────────── */
 .alert-error { color: var(--danger); background: #fff0f0; border: 1px solid #f5c0c0; border-radius: var(--radius); padding: 12px 16px; }
+.map-export-wrap { position: relative; }
+.map-export { position: absolute; top: 10px; right: 10px; z-index: 10; }
+/* Styled to match Leaflet's own map controls rather than the app theme */
+.map-export-btn {
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  background: #fff; color: #333;
+  border: 2px solid rgba(0,0,0,0.2); border-radius: 4px; background-clip: padding-box;
+  font-size: 18px; line-height: 1; cursor: pointer;
+}
+.map-export-btn:hover { background-color: #f4f4f4; }
+.map-export-btn:disabled { cursor: progress; }
+.map-export .export-dropdown-menu { min-width: 230px; }

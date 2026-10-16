@@ -47,7 +47,7 @@ components/          Pages: Dashboard, BoxList, BoxDetail, TubeList, TubeDetail,
                      CoreList, CoreDetail, CoreForm, ScanPage, LoginPage,
                      LocationList, LocationDetail, AccountPage, UserList (admin panel)
                      Shared: BarcodeInput, CameraScanner, ComboInput, CoordCard, ExportDropdown,
-                     LeafletMap, MapPicker, PythonAnywhereStats, RelativeTime,
+                     LeafletMap, MapExportMenu, MapPicker, PythonAnywhereStats, RelativeTime,
                      Skeleton, BuildInfo, Toast
 ```
 

@@ -1,4 +1,8 @@
-export default function LeafletMap({ points, height = 320, className = 'card card-map mt-4', legend = [] }) {
+import { useRef } from 'react';
+import MapExportMenu from './MapExportMenu.jsx';
+
+export default function LeafletMap({ points, height = 320, className = 'card card-map mt-4', legend = [], exportName = 'dirtnap-map' }) {
+  const iframeRef = useRef(null);
   if (!points.length) return null;
 
   const safePoints = JSON.stringify(points).replace(/<\/script>/gi, '<\\/script>');
@@ -22,6 +26,7 @@ body{margin:0}
 const pts=${safePoints};
 const legend=${safeLegend};
 const map=L.map('map');
+window.leafletMap=map;
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(map);
 const markers=pts.map(p=>{
   const m=L.circleMarker([p.lat,p.lng],{radius:8,fillColor:p.color||'#3388ff',color:'white',weight:2,opacity:1,fillOpacity:0.9}).addTo(map);
@@ -39,15 +44,24 @@ if(legend.length>1){
 </script>
 </body></html>`;
 
-  const iframe = (
-    <iframe
-      title="Map"
-      width="100%"
-      height={height}
-      className="iframe-clean"
-      srcDoc={html}
-    />
+  const content = (
+    <div className="map-export-wrap">
+      <iframe
+        ref={iframeRef}
+        title="Map"
+        width="100%"
+        height={height}
+        className="iframe-clean"
+        srcDoc={html}
+      />
+      <MapExportMenu
+        getMap={() => iframeRef.current?.contentWindow?.leafletMap}
+        points={points}
+        legend={legend}
+        filename={exportName}
+      />
+    </div>
   );
-  if (className) return <div className={className}>{iframe}</div>;
-  return <div style={{ overflow: 'hidden', borderRadius: '0 0 var(--radius) var(--radius)' }}>{iframe}</div>;
+  if (className) return <div className={className}>{content}</div>;
+  return <div style={{ overflow: 'hidden', borderRadius: '0 0 var(--radius) var(--radius)' }}>{content}</div>;
 }
