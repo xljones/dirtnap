@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import { useAuth } from '../AuthContext.jsx';
 import { useToast } from './Toast.jsx';
 import { SkeletonRows } from './Skeleton.jsx';
+import CreateButtons from './CreateButtons.jsx';
 
 export default function LocationList() {
   const { user } = useAuth();
@@ -13,6 +14,8 @@ export default function LocationList() {
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState('');
   const [saving, setSaving] = useState(false);
+  const [resetCount, setResetCount] = useState(0);
+  const addAnotherRef = useRef(false);
   const [editId, setEditId] = useState(null);
   const [editName, setEditName] = useState('');
   const toast = useToast();
@@ -31,8 +34,9 @@ export default function LocationList() {
       const loc = await api.createLocation({ name: newName.trim() });
       setLocations(ls => [...ls, loc].sort((a, b) => a.name.localeCompare(b.name)));
       setNewName('');
-      setShowAdd(false);
-      toast('Location created');
+      if (addAnotherRef.current) setResetCount(c => c + 1);
+      else setShowAdd(false);
+      toast(`Location ${loc.name} created`);
     } catch (err) {
       toast(err.message, 'error');
     } finally {
@@ -83,13 +87,14 @@ export default function LocationList() {
         <div className="card card-body mb-6">
           <form onSubmit={handleAdd} className="inline-form">
             <input
+              key={resetCount}
               value={newName}
               onChange={e => setNewName(e.target.value)}
               placeholder="Storage location name, e.g. Oslo – Cold Store"
               autoFocus
               className="barcode-input"
             />
-            <button className="btn btn-success" disabled={saving || !newName.trim()}>Save</button>
+            <CreateButtons label="Save" saving={saving} disabled={!newName.trim()} addAnotherRef={addAnotherRef} />
             <button type="button" className="btn btn-secondary" onClick={() => { setShowAdd(false); setNewName(''); }}>Cancel</button>
           </form>
         </div>

@@ -121,7 +121,7 @@ describe('TubeForm — create and add another', () => {
     fireEvent.change(screen.getByPlaceholderText('e.g. 39.0968'), { target: { value: '39.1' } });
     fireEvent.change(screen.getByPlaceholderText('e.g. -120.0324'), { target: { value: '-120' } });
 
-    fireEvent.click(screen.getByRole('button', { name: /create and add another tube/i }));
+    fireEvent.click(screen.getByRole('button', { name: /create tube and add another/i }));
 
     await waitFor(() => expect(api.createTube).toHaveBeenCalledTimes(1));
     expect(api.createTube.mock.calls[0][0]).toMatchObject({ barcode: 'TUBE001', box_id: 1, core_id: 5, depth_cm: 12 });
@@ -137,7 +137,7 @@ describe('TubeForm — create and add another', () => {
     expect(screen.getByRole('heading', { name: 'New tube' })).toBeInTheDocument();
 
     fireEvent.change(screen.getByTestId('tube-barcode-input'), { target: { value: 'TUBE002' } });
-    fireEvent.click(screen.getByRole('button', { name: /create and add another tube/i }));
+    fireEvent.click(screen.getByRole('button', { name: /create tube and add another/i }));
     await waitFor(() => expect(api.createTube).toHaveBeenCalledTimes(2));
     expect(api.createTube.mock.calls[1][0]).toMatchObject({
       barcode: 'TUBE002', box_id: 1, core_id: 5, sample_date: '2026-10-01',

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { useAuth } from '../AuthContext.jsx';
@@ -6,6 +6,7 @@ import { useToast } from './Toast.jsx';
 import RelativeTime from './RelativeTime.jsx';
 import BarcodeInput from './BarcodeInput.jsx';
 import ExportDropdown from './ExportDropdown.jsx';
+import CreateButtons from './CreateButtons.jsx';
 import { SkeletonRows } from './Skeleton.jsx';
 
 
@@ -18,6 +19,8 @@ export default function BoxList() {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ barcode: '', name: '', location_id: '', notes: '' });
   const [saving, setSaving] = useState(false);
+  const [resetCount, setResetCount] = useState(0);
+  const addAnotherRef = useRef(false);
   const [withTubes, setWithTubes] = useState(true);
   const toast = useToast();
   const navigate = useNavigate();
@@ -59,8 +62,15 @@ export default function BoxList() {
     setSaving(true);
     try {
       const box = await api.createBox(form);
-      toast('Box created');
-      navigate(`/boxes/${box.id}`);
+      toast(`Box ${box.barcode} created`);
+      if (addAnotherRef.current) {
+        // Only the storage location carries over to the next box
+        setForm(f => ({ barcode: '', name: '', location_id: f.location_id, notes: '' }));
+        setResetCount(c => c + 1);
+        api.getBoxes().then(setBoxes);
+      } else {
+        navigate(`/boxes/${box.id}`);
+      }
     } catch (err) {
       toast(err.message, 'error');
     } finally {
@@ -96,6 +106,7 @@ export default function BoxList() {
               <div className="field">
                 <label>Barcode *</label>
                 <BarcodeInput
+                  key={resetCount}
                   value={form.barcode}
                   onChange={v => set('barcode', v)}
                   placeholder="Scan or type box barcode"
@@ -119,7 +130,7 @@ export default function BoxList() {
               </div>
             </div>
             <div className="form-actions">
-              <button className="btn btn-success" disabled={saving || !form.barcode}>Save box</button>
+              <CreateButtons label="Save box" saving={saving} disabled={!form.barcode} addAnotherRef={addAnotherRef} />
               <button type="button" className="btn btn-secondary" onClick={() => setShowAdd(false)}>Cancel</button>
             </div>
           </form>

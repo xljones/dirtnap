@@ -5,6 +5,7 @@ import { useToast } from './Toast.jsx';
 import BarcodeInput from './BarcodeInput.jsx';
 import ComboInput from './ComboInput.jsx';
 import CoordCard from './CoordCard.jsx';
+import CreateButtons from './CreateButtons.jsx';
 import { FormMode } from '../constants.js';
 
 const EMPTY = {
@@ -248,25 +249,12 @@ export default function TubeForm({ mode }) {
           </div>
 
           <div className="form-actions">
-            <div className="btn-split">
-              <button
-                className="btn btn-success"
-                disabled={saving || !form.barcode}
-                onClick={() => { addAnotherRef.current = false; }}
-              >
-                {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Create tube'}
-              </button>
-              {!isEdit && (
-                <button
-                  className="btn btn-success"
-                  disabled={saving || !form.barcode}
-                  onClick={() => { addAnotherRef.current = true; }}
-                  aria-label="Create and add another tube"
-                >
-                  + add another
-                </button>
-              )}
-            </div>
+            <CreateButtons
+              label={isEdit ? 'Save changes' : 'Create tube'}
+              saving={saving}
+              disabled={!form.barcode}
+              addAnotherRef={isEdit ? null : addAnotherRef}
+            />
             <button type="button" className="btn btn-secondary" onClick={() => navigate(-1)}>Cancel</button>
           </div>
         </form>
