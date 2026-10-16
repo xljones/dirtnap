@@ -1,0 +1,1 @@
+{"version":"1.0.0","sha":"2e4b766","msg":"fix(backend): drop CORS and mark the session cookie secure in production","built_at":"2026-10-16T15:05:56Z"}
