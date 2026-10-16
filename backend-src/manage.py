@@ -328,20 +328,9 @@ def cmd_db_restore(args: list[str]) -> None:
 
 
 def cmd_db_backup(_: list[str]) -> None:
-    import datetime
-    import os
-    import sqlite3 as _sqlite3
-
-    db_path = os.environ.get("DB_PATH", "data/samples.db")
-    ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_path = str(Path(db_path).parent / f"db-backup-{ts}.sql")
-
-    con = _sqlite3.connect(db_path)
-    with open(backup_path, "w") as f:
-        for line in con.iterdump():
-            f.write(line + "\n")
-    con.close()
-    print(f"Backup written to {backup_path}")
+    from dirtnap.backups import backup_dir, create_backup
+    backup = create_backup()
+    print(f"Backup written to {backup_dir() / backup.name}")
 
 
 def cmd_migrate(_: list[str]) -> None:

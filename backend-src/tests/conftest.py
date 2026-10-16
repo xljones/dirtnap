@@ -1,4 +1,5 @@
 import os
+import shutil
 import tempfile
 from collections.abc import Generator
 
@@ -9,9 +10,9 @@ from flask.testing import FlaskClient
 
 @pytest.fixture
 def app() -> Generator[Flask, None, None]:
-    db_fd, db_path = tempfile.mkstemp(suffix=".db")
-    os.close(db_fd)
-    os.environ["DB_PATH"] = db_path
+    # Own directory per test so backups written next to the db don't leak between tests.
+    db_dir = tempfile.mkdtemp()
+    os.environ["DB_PATH"] = os.path.join(db_dir, "samples.db")
 
     # Import after setting DB_PATH so the app picks up the temp database.
     from dirtnap import create_app
@@ -22,7 +23,7 @@ def app() -> Generator[Flask, None, None]:
 
     yield application
 
-    os.unlink(db_path)
+    shutil.rmtree(db_dir)
 
 
 @pytest.fixture

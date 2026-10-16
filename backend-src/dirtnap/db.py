@@ -6,10 +6,14 @@ _DEFAULT_DB_PATH = str(Path(__file__).parent.parent.parent / "data" / "samples.d
 _MIGRATIONS_DIR = Path(__file__).parent / "migrations"
 
 
+def db_path() -> str:
+    return os.environ.get("DB_PATH", _DEFAULT_DB_PATH)
+
+
 def get_db() -> sqlite3.Connection:
-    db_path = os.environ.get("DB_PATH", _DEFAULT_DB_PATH)
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
-    db = sqlite3.connect(db_path)
+    path = db_path()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    db = sqlite3.connect(path)
     db.row_factory = sqlite3.Row
     db.execute("PRAGMA journal_mode=WAL")
     db.execute("PRAGMA foreign_keys=ON")
