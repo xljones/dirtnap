@@ -62,6 +62,22 @@ def test_create_app_requires_secret_key_in_production(tmp_path: Path) -> None:
             create_app()
 
 
+def test_session_cookie_secure_only_in_production(tmp_path: Path) -> None:
+    from dirtnap import create_app
+
+    env = {**os.environ, "DB_PATH": str(tmp_path / "samples.db"), "SECRET_KEY": "k"}
+    with patch.dict(os.environ, {**env, "FLASK_DEBUG": "0"}, clear=True):
+        assert create_app().config["SESSION_COOKIE_SECURE"] is True
+    with patch.dict(os.environ, {**env, "FLASK_DEBUG": "1"}, clear=True):
+        assert create_app().config["SESSION_COOKIE_SECURE"] is False
+
+
+def test_no_cors_headers_for_cross_origin_requests(client: FlaskClient) -> None:
+    r = client.get("/api/auth/me", headers={"Origin": "https://evil.example"})
+    assert "Access-Control-Allow-Origin" not in r.headers
+    assert "Access-Control-Allow-Credentials" not in r.headers
+
+
 # ── enforce_auth middleware ───────────────────────────────────────────────────
 
 def test_enforce_auth_expired_session(client: FlaskClient) -> None:

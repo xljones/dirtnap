@@ -62,6 +62,7 @@ In the **PythonAnywhere Web tab**:
 | Source code | `/home/<you>/dirtnap` |
 | Working directory | `/home/<you>/dirtnap` |
 | Virtualenv | `/home/<you>/dirtnap/venv` |
+| Force HTTPS | Enabled — the login cookie is HTTPS-only when `FLASK_DEBUG=0`, so logins over plain `http://` won't stick |
 
 **WSGI configuration file** — replace the entire contents with the contents of `pa_wsgi.py` from the repo. (It loads `.env`, adds `backend-src/` to `sys.path`, and imports `application` from `wsgi.py`.)
 

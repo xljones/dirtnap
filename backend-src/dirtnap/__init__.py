@@ -4,7 +4,6 @@ from pathlib import Path
 
 from flask import Flask, Response, jsonify, request, send_from_directory
 from flask.typing import ResponseReturnValue
-from flask_cors import CORS
 from flask_login import LoginManager, current_user, logout_user
 
 from dirtnap.domain.user import User
@@ -21,9 +20,11 @@ def create_app() -> Flask:
 
     run_migrations()
 
+    is_production = os.environ.get("FLASK_DEBUG", "1") == "0"
+
     secret_key = os.environ.get("SECRET_KEY")
     if not secret_key:
-        if os.environ.get("FLASK_DEBUG", "1") == "0":
+        if is_production:
             raise RuntimeError("SECRET_KEY environment variable must be set in production")
         secret_key = "dev-secret-key-change-in-production"
 
@@ -31,7 +32,8 @@ def create_app() -> Flask:
     app.config["SECRET_KEY"] = secret_key
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-    CORS(app, supports_credentials=True)
+    # Production is HTTPS-only; dev runs over plain http://localhost.
+    app.config["SESSION_COOKIE_SECURE"] = is_production
 
     login_manager.init_app(app)
 
