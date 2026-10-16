@@ -23,6 +23,7 @@ DDD-inspired layering — routes never write SQL directly.
 dirtnap/
   __init__.py        create_app() factory; Flask-Login setup, before_request auth guard
   db.py              get_db(), run_migrations() — migration runner reads migrations/*.sql
+  backups.py         create_backup(), list_backups() — SQL dumps next to the db; shared by manage.py and admin routes
   migrations/        Numbered SQL files (001_initial.sql, …)
   domain/            Plain dataclasses: Box, Core, Tube, User, Location
   repositories/      BoxRepository, CoreRepository, TubeRepository, UserRepository, LocationRepository — own all SQL
@@ -33,7 +34,7 @@ dirtnap/
 - **Adding a schema change:** drop a new `NNN_description.sql` in `migrations/`. It runs automatically on next startup and is recorded in `schema_migrations`.
 - **Adding an endpoint:** add a method to the relevant repository, call it from the relevant blueprint.
 - **Auth:** Flask-Login guards all routes via `@login_required`; an additional `before_request` hook in `__init__.py` enforces account expiry (logs the user out) and read-only mode (blocks non-GET writes except password change / logout).
-- **Admin-only:** `routes/admin.py` exposes `/api/admin/pythonanywhere` (CPU, web app, scheduled task info) — gated on `current_user.is_admin`. Requires `PA_API_TOKEN` and `PA_USERNAME` env vars.
+- **Admin-only:** `routes/admin.py` exposes `/api/admin/pythonanywhere` (CPU, web app, scheduled task info; requires `PA_API_TOKEN` and `PA_USERNAME` env vars) and `/api/admin/backups` (list / create / download the `*.sql` dumps in the db's directory) — all gated on `current_user.is_admin`.
 
 ### Frontend (`frontend-src/`)
 
@@ -46,14 +47,14 @@ styles/              Per-concern CSS modules (base, buttons, cards, forms, layou
 components/          Pages: Dashboard, BoxList, BoxDetail, TubeList, TubeDetail, TubeForm,
                      CoreList, CoreDetail, CoreForm, ScanPage, LoginPage,
                      LocationList, LocationDetail, AccountPage, UserList (admin panel)
-                     Shared: BarcodeInput, CameraScanner, ComboInput, CoordCard, ExportDropdown,
+                     Shared: BackupList, BarcodeInput, CameraScanner, ComboInput, CoordCard, ExportDropdown,
                      LeafletMap, MapExportMenu, MapPicker, PythonAnywhereStats, RelativeTime,
                      Skeleton, BuildInfo, Toast
 ```
 
 - **BarcodeInput** — composes manual text input + camera toggle; USB scanners work natively as keyboard wedge.
 - **CameraScanner** — lazy-loaded; starts camera immediately on mount (triggers browser permission), enumerates devices after permission granted, auto-detects front/rear for mirror correction.
-- **UserList** — admin-only page mounted at `/admin`; manages users and embeds `PythonAnywhereStats`.
+- **UserList** — admin-only page mounted at `/admin`; manages users and embeds `PythonAnywhereStats` and `BackupList`.
 
 ## Running locally
 

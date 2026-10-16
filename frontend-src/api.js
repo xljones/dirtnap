@@ -47,6 +47,9 @@ export const api = {
 
   // Admin
   getPythonAnywhereStats: () => req('GET', '/admin/pythonanywhere'),
+  getBackups:             () => req('GET', '/admin/backups'),
+  createBackup:           () => req('POST', '/admin/backups'),
+  backupDownloadUrl:      (name) => `${BASE}/admin/backups/${encodeURIComponent(name)}`,
 
   // Users
   getUsers:    ()      => req('GET',    '/users'),

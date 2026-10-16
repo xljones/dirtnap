@@ -4,6 +4,7 @@ import { useAuth } from '../AuthContext.jsx';
 import { useToast } from './Toast.jsx';
 import RelativeTime from './RelativeTime.jsx';
 import PythonAnywhereStats from './PythonAnywhereStats.jsx';
+import BackupList from './BackupList.jsx';
 
 function statusLabel(u) {
   if (!u.expires_at) return null;
@@ -69,6 +70,7 @@ export default function UserList() {
         <h1 className="page-title">Deployment</h1>
       </div>
       <PythonAnywhereStats />
+      <BackupList />
       <div className="page-header">
         <h1 className="page-title">Users</h1>
         <button className="btn btn-primary" onClick={() => setShowAdd(v => !v)}>+ New user</button>
