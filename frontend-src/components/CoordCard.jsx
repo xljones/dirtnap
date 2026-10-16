@@ -77,6 +77,7 @@ export default function CoordCard({
           points={allPoints}
           legend={legend}
           className={null}
+          exportName={mapLabel ? `${mapLabel}-map` : undefined}
         />
       )}
     </div>
