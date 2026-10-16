@@ -1,15 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { api } from '../api.js';
 import { useToast } from './Toast.jsx';
 import BarcodeInput from './BarcodeInput.jsx';
 import CoordCard from './CoordCard.jsx';
+import CreateButtons from './CreateButtons.jsx';
 
 const EMPTY = {
   barcode: '', name: '', location_id: '', site_name: '', collection_date: '',
   depth_cm: '', sample_type: '', collector: '', owner: '', notes: '',
   latitude: '', longitude: '',
 };
+
+// Fields carried over when using "+ add another"
+const KEEP_ON_ADD_ANOTHER = [
+  'location_id', 'site_name', 'collection_date', 'sample_type', 'collector', 'owner', 'latitude', 'longitude',
+];
 
 export default function CoreForm() {
   const [params] = useSearchParams();
@@ -18,6 +24,8 @@ export default function CoreForm() {
   const [form, setForm] = useState({ ...EMPTY, barcode: params.get('barcode') ?? '' });
   const [locations, setLocations] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [resetCount, setResetCount] = useState(0);
+  const addAnotherRef = useRef(false);
 
   useEffect(() => { api.getLocations().then(setLocations); }, []);
 
@@ -36,8 +44,16 @@ export default function CoreForm() {
         depth_cm: num(form.depth_cm),
       };
       const core = await api.createCore(body);
-      toast('Core created');
-      navigate(`/cores/${core.id}`);
+      toast(`Core ${core.barcode} created`);
+      if (addAnotherRef.current) {
+        setForm(f => ({
+          ...EMPTY,
+          ...Object.fromEntries(KEEP_ON_ADD_ANOTHER.map(k => [k, f[k]])),
+        }));
+        setResetCount(c => c + 1);
+      } else {
+        navigate(`/cores/${core.id}`);
+      }
     } catch (err) {
       toast(err.message, 'error');
     } finally {
@@ -60,6 +76,7 @@ export default function CoreForm() {
             <div className="field span-2">
               <label>Barcode *</label>
               <BarcodeInput
+                key={resetCount}
                 value={form.barcode}
                 onChange={v => set('barcode', v)}
                 placeholder="Scan or type core barcode"
@@ -117,9 +134,7 @@ export default function CoreForm() {
           </div>
 
           <div className="form-actions">
-            <button className="btn btn-success" disabled={saving || !form.barcode}>
-              {saving ? 'Saving…' : 'Create core'}
-            </button>
+            <CreateButtons label="Create core" saving={saving} disabled={!form.barcode} addAnotherRef={addAnotherRef} />
             <button type="button" className="btn btn-secondary" onClick={() => navigate('/cores')}>Cancel</button>
           </div>
         </form>

@@ -1,7 +1,8 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import BoxDetail from './BoxDetail';
+import { api } from '../api.js';
 
 const mockUpdateTube = vi.hoisted(() => vi.fn().mockResolvedValue({ id: 20, barcode: 'T002', box_id: 1 }));
 
@@ -132,5 +133,21 @@ describe('BoxDetail', () => {
     await waitFor(() => {
       expect(screen.queryByText('T003')).not.toBeInTheDocument();
     });
+  });
+});
+
+describe('BoxDetail — inherited values', () => {
+  it('shows site and type a tube inherits from its core', async () => {
+    api.getBox.mockResolvedValueOnce({
+      id: 1, barcode: 'BOX001', name: 'Shelf A', notes: '', created_at: '2024-01-01T00:00:00',
+      tubes: [{ id: 12, barcode: 'T-INH', site_name: null, sample_type: null, box_id: 1,
+        core_barcode: 'CR-001', core_site_name: 'North Sea', core_sample_type: 'Piston core' }],
+    });
+    renderBoxDetail();
+    await waitFor(() => screen.getByText('T-INH'));
+    const row = screen.getByText('T-INH').closest('tr');
+    expect(within(row).getByText('North Sea')).toBeInTheDocument();
+    expect(within(row).getByText('Piston core')).toBeInTheDocument();
+    expect(within(row).getAllByText('inherited')).toHaveLength(2);
   });
 });

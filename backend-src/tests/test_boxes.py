@@ -123,3 +123,18 @@ def test_box_tube_count_updates(auth_client: FlaskClient) -> None:
     auth_client.post("/api/tubes", json={"barcode": "TUBE002", "box_id": box["id"]})
     r = auth_client.get(f"/api/boxes/{box['id']}")
     assert len(r.json["tubes"]) == 2
+
+
+def test_get_box_tubes_include_core_values(auth_client: FlaskClient) -> None:
+    box = auth_client.post("/api/boxes", json={"barcode": "BOX001"}).json
+    core = auth_client.post(
+        "/api/cores",
+        json={"barcode": "CORE001", "name": "Core A", "site_name": "North Sea", "sample_type": "Piston"},
+    ).json
+    auth_client.post("/api/tubes", json={"barcode": "TUBE001", "box_id": box["id"], "core_id": core["id"]})
+    tube = auth_client.get(f"/api/boxes/{box['id']}").json["tubes"][0]
+    assert tube["site_name"] is None
+    assert tube["core_barcode"] == "CORE001"
+    assert tube["core_name"] == "Core A"
+    assert tube["core_site_name"] == "North Sea"
+    assert tube["core_sample_type"] == "Piston"

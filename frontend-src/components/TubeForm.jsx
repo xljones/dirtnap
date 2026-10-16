@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { api } from '../api.js';
 import { useToast } from './Toast.jsx';
 import BarcodeInput from './BarcodeInput.jsx';
 import ComboInput from './ComboInput.jsx';
 import CoordCard from './CoordCard.jsx';
+import CreateButtons from './CreateButtons.jsx';
 import { FormMode } from '../constants.js';
 
 const EMPTY = {
@@ -12,6 +13,11 @@ const EMPTY = {
   latitude: '', longitude: '', sample_type: '', description: '',
   volume_ml: '', weight_g: '', depth_cm: '',
 };
+
+// Fields carried over when using "Create and add another"
+const KEEP_ON_ADD_ANOTHER = [
+  'box_id', 'core_id', 'sample_date', 'site_name', 'sample_type', 'latitude', 'longitude',
+];
 
 export default function TubeForm({ mode }) {
   const { id } = useParams();
@@ -25,6 +31,8 @@ export default function TubeForm({ mode }) {
   const [boxBarcode, setBoxBarcode] = useState('');
   const [coreBarcode, setCoreBarcode] = useState('');
   const [creatingBox, setCreatingBox] = useState(false);
+  const [resetCount, setResetCount] = useState(0);
+  const addAnotherRef = useRef(false);
   const isEdit = mode === FormMode.EDIT;
 
   const boxMatch = boxes.find(b => b.barcode.toLowerCase() === boxBarcode.toLowerCase());
@@ -74,13 +82,7 @@ export default function TubeForm({ mode }) {
         const match = cs.find(c => String(c.id) === presetCoreId);
         if (match) {
           setCoreBarcode(match.barcode);
-          setForm(f => ({
-            ...f,
-            core_id: match.id,
-            ...(match.latitude != null ? { latitude: match.latitude } : {}),
-            ...(match.longitude != null ? { longitude: match.longitude } : {}),
-            ...(match.site_name ? { site_name: match.site_name } : {}),
-          }));
+          setForm(f => ({ ...f, core_id: match.id }));
         }
       }
     });
@@ -121,8 +123,16 @@ export default function TubeForm({ mode }) {
         navigate(`/tubes/${id}`);
       } else {
         const tube = await api.createTube(body);
-        toast('Tube created');
-        navigate(`/tubes/${tube.id}`);
+        toast(`Tube ${tube.barcode} created`);
+        if (addAnotherRef.current) {
+          setForm(f => ({
+            ...EMPTY,
+            ...Object.fromEntries(KEEP_ON_ADD_ANOTHER.map(k => [k, f[k]])),
+          }));
+          setResetCount(c => c + 1);
+        } else {
+          navigate(`/tubes/${tube.id}`);
+        }
       }
     } catch (err) {
       toast(err.message, 'error');
@@ -148,6 +158,7 @@ export default function TubeForm({ mode }) {
             <div className="field span-2">
               <label>Barcode *</label>
               <BarcodeInput
+                key={resetCount}
                 value={form.barcode}
                 onChange={v => set('barcode', v)}
                 placeholder="Scan or type tube barcode"
@@ -203,11 +214,17 @@ export default function TubeForm({ mode }) {
             <div className="field">
               <label>Site name</label>
               <input value={form.site_name} onChange={e => set('site_name', e.target.value)} placeholder="e.g. Lake Tahoe core 3" />
+              {!form.site_name && coreMatch?.site_name && (
+                <p className="form-hint muted">Inherits from core: {coreMatch.site_name}</p>
+              )}
             </div>
 
             <div className="field">
               <label>Sample type</label>
               <input value={form.sample_type} onChange={e => set('sample_type', e.target.value)} placeholder="e.g. surface, freeze core…" />
+              {!form.sample_type && coreMatch?.sample_type && (
+                <p className="form-hint muted">Inherits from core: {coreMatch.sample_type}</p>
+              )}
             </div>
 
             <div className="field">
@@ -232,9 +249,12 @@ export default function TubeForm({ mode }) {
           </div>
 
           <div className="form-actions">
-            <button className="btn btn-success" disabled={saving || !form.barcode}>
-              {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Create tube'}
-            </button>
+            <CreateButtons
+              label={isEdit ? 'Save changes' : 'Create tube'}
+              saving={saving}
+              disabled={!form.barcode}
+              addAnotherRef={isEdit ? null : addAnotherRef}
+            />
             <button type="button" className="btn btn-secondary" onClick={() => navigate(-1)}>Cancel</button>
           </div>
         </form>
@@ -245,6 +265,8 @@ export default function TubeForm({ mode }) {
         lat={form.latitude}
         lng={form.longitude}
         onChange={(lat, lng) => { set('latitude', lat); set('longitude', lng); }}
+        latHint={form.latitude === '' && coreMatch?.latitude != null ? `Inherits from core: ${coreMatch.latitude}` : null}
+        lngHint={form.longitude === '' && coreMatch?.longitude != null ? `Inherits from core: ${coreMatch.longitude}` : null}
       />
     </div>
   );
