@@ -8,6 +8,7 @@ import BarcodeInput from './BarcodeInput.jsx';
 import LeafletMap from './LeafletMap.jsx';
 import ExportDropdown from './ExportDropdown.jsx';
 import { SkeletonPage } from './Skeleton.jsx';
+import InheritedValue, { coreLabel } from './InheritedValue.jsx';
 
 export default function BoxDetail() {
   const { user } = useAuth();
@@ -246,8 +247,8 @@ export default function BoxDetail() {
             const filtered = q
               ? unassigned.filter(t =>
                   t.barcode.toLowerCase().includes(q) ||
-                  (t.site_name ?? '').toLowerCase().includes(q) ||
-                  (t.sample_type ?? '').toLowerCase().includes(q)
+                  (t.site_name || t.core_site_name || '').toLowerCase().includes(q) ||
+                  (t.sample_type || t.core_sample_type || '').toLowerCase().includes(q)
                 )
               : unassigned;
             return filtered.length > 0 ? (
@@ -270,8 +271,8 @@ export default function BoxDetail() {
                           }}
                         >
                           <td><span className="barcode">{t.barcode}</span></td>
-                          <td className="text-muted text-sm">{t.site_name || '—'}</td>
-                          <td className="text-muted text-sm">{t.sample_type || '—'}</td>
+                          <td className="text-muted text-sm"><InheritedValue own={t.site_name} inherited={t.core_site_name} from={coreLabel(t)} /></td>
+                          <td className="text-muted text-sm"><InheritedValue own={t.sample_type} inherited={t.core_sample_type} from={coreLabel(t)} /></td>
                         </tr>
                       ))}
                     </tbody>
@@ -294,8 +295,8 @@ export default function BoxDetail() {
               {box.tubes?.map(t => (
                 <tr key={t.id} className="row-clickable" onClick={e => { if (!e.target.closest('a, button')) navigate(`/tubes/${t.id}?from=/boxes/${id}`); }}>
                   <td><Link to={`/tubes/${t.id}?from=/boxes/${id}`}><span className="barcode">{t.barcode}</span></Link></td>
-                  <td>{t.site_name || '—'}</td>
-                  <td>{t.sample_type || '—'}</td>
+                  <td><InheritedValue own={t.site_name} inherited={t.core_site_name} from={coreLabel(t)} /></td>
+                  <td><InheritedValue own={t.sample_type} inherited={t.core_sample_type} from={coreLabel(t)} /></td>
                   <td>{t.depth_cm ?? '—'}</td>
                   <td>{t.sample_date || '—'}</td>
                   <td className="col-shrink">

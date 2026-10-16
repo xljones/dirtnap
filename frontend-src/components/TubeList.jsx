@@ -6,6 +6,7 @@ import { useToast } from './Toast.jsx';
 import ComboInput from './ComboInput.jsx';
 import ExportDropdown from './ExportDropdown.jsx';
 import { SkeletonRows } from './Skeleton.jsx';
+import InheritedValue, { coreLabel } from './InheritedValue.jsx';
 
 const TUBE_EXPORT_FIELDS = [
   'barcode', 'box_barcode', 'box_name', 'sample_date', 'site_name',
@@ -83,8 +84,8 @@ export default function TubeList() {
     .filter(t => !unassignedOnly || !t.box_id)
     .filter(t => !q || (
       t.barcode.toLowerCase().includes(q) ||
-      (t.site_name ?? '').toLowerCase().includes(q) ||
-      (t.sample_type ?? '').toLowerCase().includes(q) ||
+      (t.site_name || t.core_site_name || '').toLowerCase().includes(q) ||
+      (t.sample_type || t.core_sample_type || '').toLowerCase().includes(q) ||
       (t.box_barcode ?? '').toLowerCase().includes(q) ||
       (t.box_name ?? '').toLowerCase().includes(q) ||
       (t.description ?? '').toLowerCase().includes(q) ||
@@ -226,8 +227,8 @@ export default function TubeList() {
                         )}
                         <td><Link to={`/tubes/${t.id}`}><span className="barcode">{t.barcode}</span></Link></td>
                         <td>{t.box_barcode ? <Link to={`/boxes/${t.box_id}`}><span className="barcode">{t.box_barcode}</span></Link> : <span className="text-muted">—</span>}</td>
-                        <td>{t.site_name || '—'}</td>
-                        <td>{t.sample_type || '—'}</td>
+                        <td><InheritedValue own={t.site_name} inherited={t.core_site_name} from={coreLabel(t)} /></td>
+                        <td><InheritedValue own={t.sample_type} inherited={t.core_sample_type} from={coreLabel(t)} /></td>
                         <td className="col-mobile-hide">{t.depth_cm ?? '—'}</td>
                         <td className="col-mobile-hide">{t.sample_date || '—'}</td>
                         <td className="col-shrink">

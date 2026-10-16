@@ -1,7 +1,8 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import TubeList from './TubeList';
+import { api } from '../api.js';
 
 vi.mock('../api.js', () => ({
   api: {
@@ -68,5 +69,25 @@ describe('TubeList', () => {
     fireEvent.change(screen.getByPlaceholderText(/filter/i), { target: { value: 'Site A' } });
     expect(screen.getByText('T001')).toBeInTheDocument();
     expect(screen.queryByText('T002')).not.toBeInTheDocument();
+  });
+});
+
+describe('TubeList — inherited values', () => {
+  it('shows site and type inherited from the core, and filters on them', async () => {
+    api.getTubes.mockResolvedValueOnce([
+      { id: 3, barcode: 'T-INH', box_id: null, site_name: null, sample_type: null,
+        core_barcode: 'CR-001', core_site_name: 'North Sea', core_sample_type: 'Piston core' },
+      { id: 4, barcode: 'T-OTHER', box_id: null, site_name: 'Lake', sample_type: null },
+    ]);
+    renderAt('/tubes');
+    await waitFor(() => screen.getByText('T-INH'));
+    const row = screen.getByText('T-INH').closest('tr');
+    expect(within(row).getByText('North Sea')).toBeInTheDocument();
+    expect(within(row).getByText('Piston core')).toBeInTheDocument();
+    expect(within(row).getAllByText('inherited')).toHaveLength(2);
+
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'north sea' } });
+    await waitFor(() => expect(screen.queryByText('T-OTHER')).not.toBeInTheDocument());
+    expect(screen.getByText('T-INH')).toBeInTheDocument();
   });
 });

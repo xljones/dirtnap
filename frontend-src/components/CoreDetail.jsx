@@ -8,6 +8,7 @@ import BarcodeInput from './BarcodeInput.jsx';
 import CoordCard from './CoordCard.jsx';
 import ExportDropdown from './ExportDropdown.jsx';
 import { SkeletonPage } from './Skeleton.jsx';
+import InheritedValue from './InheritedValue.jsx';
 
 export default function CoreDetail() {
   const { user } = useAuth();
@@ -301,8 +302,8 @@ export default function CoreDetail() {
             onMouseLeave={() => setHoveredTubeId(null)}
           >
             <td><Link to={`/tubes/${t.id}?from=/cores/${id}`}><span className="barcode">{t.barcode}</span></Link></td>
-            <td>{t.site_name || '—'}</td>
-            <td>{t.sample_type || '—'}</td>
+            <td><InheritedValue own={t.site_name} inherited={core.site_name} from="Inherited from this core" /></td>
+            <td><InheritedValue own={t.sample_type} inherited={core.sample_type} from="Inherited from this core" /></td>
             <td>{t.depth_cm ?? '—'}</td>
             <td>{t.sample_date || '—'}</td>
             <td><div className="row-actions">{!ro && <Link to={`/tubes/${t.id}?edit=1&from=/cores/${id}`} className="btn btn-secondary btn-sm">Edit</Link>}</div></td>
