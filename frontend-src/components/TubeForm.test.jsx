@@ -2,6 +2,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import TubeForm from './TubeForm';
+import { api } from '../api.js';
 import { FormMode } from '../constants.js';
 
 vi.mock('../api.js', () => ({
@@ -90,5 +91,58 @@ describe('TubeForm — map picker', () => {
   it('map picker is always visible', async () => {
     renderNew();
     await waitFor(() => expect(screen.getByTestId('map-picker')).toBeInTheDocument());
+  });
+});
+
+describe('TubeForm — create and add another', () => {
+  const field = label =>
+    screen.getByText(label, { selector: 'label' }).parentElement.querySelector('input, textarea');
+
+  it('is not shown in edit mode', async () => {
+    api.getTube.mockResolvedValueOnce({ id: 99, barcode: 'TUBE001' });
+    renderNew('/tubes/99/edit');
+    await waitFor(() => screen.getByRole('button', { name: /save changes/i }));
+    expect(screen.queryByRole('button', { name: /add another/i })).not.toBeInTheDocument();
+  });
+
+  it('creates the tube and resets the form, keeping box, core, date, site, type and coordinates', async () => {
+    api.createTube.mockClear();
+    api.getCores.mockResolvedValueOnce([{ id: 5, barcode: 'CORE005' }]);
+    renderNew('/tubes/new?box_id=1&core_id=5');
+    await waitFor(() => expect(screen.getByTestId('box-barcode-input')).toHaveValue('BOX001'));
+    await waitFor(() => expect(screen.getByTestId('core-barcode-input')).toHaveValue('CORE005'));
+
+    fireEvent.change(screen.getByTestId('tube-barcode-input'), { target: { value: 'TUBE001' } });
+    fireEvent.change(field('Sample date'), { target: { value: '2026-10-01' } });
+    fireEvent.change(field('Site name'), { target: { value: 'Lake Tahoe' } });
+    fireEvent.change(field('Sample type'), { target: { value: 'surface' } });
+    fireEvent.change(field('Depth in core (cm)'), { target: { value: '12' } });
+    fireEvent.change(field('Description / notes'), { target: { value: 'notes' } });
+    fireEvent.change(screen.getByPlaceholderText('e.g. 39.0968'), { target: { value: '39.1' } });
+    fireEvent.change(screen.getByPlaceholderText('e.g. -120.0324'), { target: { value: '-120' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /create and add another tube/i }));
+
+    await waitFor(() => expect(api.createTube).toHaveBeenCalledTimes(1));
+    expect(api.createTube.mock.calls[0][0]).toMatchObject({ barcode: 'TUBE001', box_id: 1, core_id: 5, depth_cm: 12 });
+
+    await waitFor(() => expect(screen.getByTestId('tube-barcode-input')).toHaveValue(''));
+    expect(screen.getByTestId('box-barcode-input')).toHaveValue('BOX001');
+    expect(screen.getByTestId('core-barcode-input')).toHaveValue('CORE005');
+    expect(field('Sample date')).toHaveValue('2026-10-01');
+    expect(field('Site name')).toHaveValue('Lake Tahoe');
+    expect(field('Sample type')).toHaveValue('surface');
+    expect(field('Depth in core (cm)')).toHaveValue(null);
+    expect(field('Description / notes')).toHaveValue('');
+    expect(screen.getByRole('heading', { name: 'New tube' })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByTestId('tube-barcode-input'), { target: { value: 'TUBE002' } });
+    fireEvent.click(screen.getByRole('button', { name: /create and add another tube/i }));
+    await waitFor(() => expect(api.createTube).toHaveBeenCalledTimes(2));
+    expect(api.createTube.mock.calls[1][0]).toMatchObject({
+      barcode: 'TUBE002', box_id: 1, core_id: 5, sample_date: '2026-10-01',
+      site_name: 'Lake Tahoe', sample_type: 'surface', latitude: 39.1, longitude: -120.0,
+      depth_cm: null, description: '',
+    });
   });
 });

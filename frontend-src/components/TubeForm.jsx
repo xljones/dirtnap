@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { api } from '../api.js';
 import { useToast } from './Toast.jsx';
@@ -13,6 +13,11 @@ const EMPTY = {
   volume_ml: '', weight_g: '', depth_cm: '',
 };
 
+// Fields carried over when using "Create and add another"
+const KEEP_ON_ADD_ANOTHER = [
+  'box_id', 'core_id', 'sample_date', 'site_name', 'sample_type', 'latitude', 'longitude',
+];
+
 export default function TubeForm({ mode }) {
   const { id } = useParams();
   const [params] = useSearchParams();
@@ -25,6 +30,8 @@ export default function TubeForm({ mode }) {
   const [boxBarcode, setBoxBarcode] = useState('');
   const [coreBarcode, setCoreBarcode] = useState('');
   const [creatingBox, setCreatingBox] = useState(false);
+  const [resetCount, setResetCount] = useState(0);
+  const addAnotherRef = useRef(false);
   const isEdit = mode === FormMode.EDIT;
 
   const boxMatch = boxes.find(b => b.barcode.toLowerCase() === boxBarcode.toLowerCase());
@@ -121,8 +128,16 @@ export default function TubeForm({ mode }) {
         navigate(`/tubes/${id}`);
       } else {
         const tube = await api.createTube(body);
-        toast('Tube created');
-        navigate(`/tubes/${tube.id}`);
+        toast(`Tube ${tube.barcode} created`);
+        if (addAnotherRef.current) {
+          setForm(f => ({
+            ...EMPTY,
+            ...Object.fromEntries(KEEP_ON_ADD_ANOTHER.map(k => [k, f[k]])),
+          }));
+          setResetCount(c => c + 1);
+        } else {
+          navigate(`/tubes/${tube.id}`);
+        }
       }
     } catch (err) {
       toast(err.message, 'error');
@@ -148,6 +163,7 @@ export default function TubeForm({ mode }) {
             <div className="field span-2">
               <label>Barcode *</label>
               <BarcodeInput
+                key={resetCount}
                 value={form.barcode}
                 onChange={v => set('barcode', v)}
                 placeholder="Scan or type tube barcode"
@@ -232,9 +248,25 @@ export default function TubeForm({ mode }) {
           </div>
 
           <div className="form-actions">
-            <button className="btn btn-success" disabled={saving || !form.barcode}>
-              {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Create tube'}
-            </button>
+            <div className="btn-split">
+              <button
+                className="btn btn-success"
+                disabled={saving || !form.barcode}
+                onClick={() => { addAnotherRef.current = false; }}
+              >
+                {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Create tube'}
+              </button>
+              {!isEdit && (
+                <button
+                  className="btn btn-success"
+                  disabled={saving || !form.barcode}
+                  onClick={() => { addAnotherRef.current = true; }}
+                  aria-label="Create and add another tube"
+                >
+                  …and add another
+                </button>
+              )}
+            </div>
             <button type="button" className="btn btn-secondary" onClick={() => navigate(-1)}>Cancel</button>
           </div>
         </form>
