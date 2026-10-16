@@ -146,3 +146,41 @@ describe('TubeForm — create and add another', () => {
     });
   });
 });
+
+describe('TubeForm — inherited core values', () => {
+  const field = label =>
+    screen.getByText(label, { selector: 'label' }).parentElement.querySelector('input, textarea');
+
+  it('shows what an empty field will inherit from the selected core', async () => {
+    api.getCores.mockResolvedValueOnce([
+      { id: 5, barcode: 'CORE005', site_name: 'North Sea', sample_type: 'Piston core', latitude: 56.82, longitude: 3.1 },
+    ]);
+    renderNew();
+    await waitFor(() => screen.getByTestId('core-barcode-input'));
+    expect(screen.queryByText(/inherits from core/i)).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByTestId('core-barcode-input'), { target: { value: 'CORE005' } });
+
+    await waitFor(() => expect(screen.getByText('Inherits from core: North Sea')).toBeInTheDocument());
+    expect(screen.getByText('Inherits from core: Piston core')).toBeInTheDocument();
+    expect(screen.getByText('Inherits from core: 56.82')).toBeInTheDocument();
+    expect(screen.getByText('Inherits from core: 3.1')).toBeInTheDocument();
+
+    fireEvent.change(field('Site name'), { target: { value: 'Own site' } });
+    expect(screen.queryByText('Inherits from core: North Sea')).not.toBeInTheDocument();
+  });
+
+  it('starting from a core page shows inherited values instead of copying them', async () => {
+    api.getCores.mockResolvedValueOnce([
+      { id: 5, barcode: 'CORE005', site_name: 'North Sea', sample_type: 'Piston core', latitude: 56.82, longitude: 3.1 },
+    ]);
+    renderNew('/tubes/new?core_id=5');
+    await waitFor(() => expect(screen.getByTestId('core-barcode-input')).toHaveValue('CORE005'));
+
+    expect(field('Site name')).toHaveValue('');
+    expect(field('Sample type')).toHaveValue('');
+    expect(screen.getByPlaceholderText('e.g. 39.0968')).toHaveValue(null);
+    expect(screen.getByText('Inherits from core: North Sea')).toBeInTheDocument();
+    expect(screen.getByText('Inherits from core: 56.82')).toBeInTheDocument();
+  });
+});

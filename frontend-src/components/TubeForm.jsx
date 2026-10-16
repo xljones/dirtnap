@@ -81,13 +81,7 @@ export default function TubeForm({ mode }) {
         const match = cs.find(c => String(c.id) === presetCoreId);
         if (match) {
           setCoreBarcode(match.barcode);
-          setForm(f => ({
-            ...f,
-            core_id: match.id,
-            ...(match.latitude != null ? { latitude: match.latitude } : {}),
-            ...(match.longitude != null ? { longitude: match.longitude } : {}),
-            ...(match.site_name ? { site_name: match.site_name } : {}),
-          }));
+          setForm(f => ({ ...f, core_id: match.id }));
         }
       }
     });
@@ -219,11 +213,17 @@ export default function TubeForm({ mode }) {
             <div className="field">
               <label>Site name</label>
               <input value={form.site_name} onChange={e => set('site_name', e.target.value)} placeholder="e.g. Lake Tahoe core 3" />
+              {!form.site_name && coreMatch?.site_name && (
+                <p className="form-hint muted">Inherits from core: {coreMatch.site_name}</p>
+              )}
             </div>
 
             <div className="field">
               <label>Sample type</label>
               <input value={form.sample_type} onChange={e => set('sample_type', e.target.value)} placeholder="e.g. surface, freeze core…" />
+              {!form.sample_type && coreMatch?.sample_type && (
+                <p className="form-hint muted">Inherits from core: {coreMatch.sample_type}</p>
+              )}
             </div>
 
             <div className="field">
@@ -277,6 +277,8 @@ export default function TubeForm({ mode }) {
         lat={form.latitude}
         lng={form.longitude}
         onChange={(lat, lng) => { set('latitude', lat); set('longitude', lng); }}
+        latHint={form.latitude === '' && coreMatch?.latitude != null ? `Inherits from core: ${coreMatch.latitude}` : null}
+        lngHint={form.longitude === '' && coreMatch?.longitude != null ? `Inherits from core: ${coreMatch.longitude}` : null}
       />
     </div>
   );
