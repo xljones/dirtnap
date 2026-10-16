@@ -25,6 +25,13 @@
   box-shadow: inset 1px 0 0 rgba(255,255,255,0.35);
 }
 .btn-split > .btn:not(:last-child) { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+/* Outline what a click will run: the first button alone, or the whole set from the last one */
+.btn-split { border-radius: var(--radius); }
+.btn-split > .btn:first-child:is(:hover, :focus-visible):not(:disabled),
+.btn-split:has(> .btn:not(:first-child):is(:hover, :focus-visible):not(:disabled)) {
+  outline: 2px solid #2e7d32; outline-offset: 2px;
+}
+.btn-split > .btn:not(:first-child):focus-visible { outline: none; }
 
 .export-dropdown { position: relative; }
 .export-dropdown-chevron { font-size: 10px; opacity: 0.7; }
