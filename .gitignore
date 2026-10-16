@@ -1,7 +1,6 @@
 .env
-data/samples.db
-data/samples.db-shm
-data/samples.db-wal
+data/*
+!data/.gitkeep
 node_modules/
 venv/
 __pycache__/
