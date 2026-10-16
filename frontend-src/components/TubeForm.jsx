@@ -263,7 +263,7 @@ export default function TubeForm({ mode }) {
                   onClick={() => { addAnotherRef.current = true; }}
                   aria-label="Create and add another tube"
                 >
-                  …and add another
+                  + add another
                 </button>
               )}
             </div>
