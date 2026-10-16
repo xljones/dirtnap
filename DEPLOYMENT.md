@@ -81,7 +81,7 @@ From a **PythonAnywhere Bash console** inside `~/dirtnap`:
 make deploy-pa
 ```
 
-This switches to the `deploy` branch, pulls the latest changes (including the freshly built `dist/`), and installs any new Python dependencies. Reload the web app from the PythonAnywhere Web tab to apply the changes.
+If a database exists, it first asks whether to back it up — type `yes` to write `data/db-backup-<timestamp>.sql` before deploying, or `no` to skip (any other answer re-prompts). It then switches to the `deploy` branch, pulls the latest changes (including the freshly built `dist/`), and installs any new Python dependencies. Reload the web app from the PythonAnywhere Web tab to apply the changes.
 
 Database migrations run automatically on the next request after reload.
 

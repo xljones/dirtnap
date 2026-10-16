@@ -97,7 +97,7 @@ The database is at `data/samples.db` (bind-mounted into the backend container).
 ## PythonAnywhere deployment
 
 ```bash
-make deploy-pa    # checkout deploy branch, reset to origin/deploy, create venv if needed, install deps
+make deploy-pa    # prompt for db backup (yes/no), checkout deploy branch, reset to origin/deploy, create venv if needed, install deps
 ```
 
 All `make` commands listed under **Database & users** above auto-detect the environment: on PythonAnywhere they run via `venv/bin/python backend-src/manage.py` directly; locally they go through Docker. Detection uses `PYTHONANYWHERE_SITE`, an env var PythonAnywhere injects automatically into every console and web process (set to the site's domain, e.g. `username.pythonanywhere.com`).
